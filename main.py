@@ -2,6 +2,7 @@
 from langchain_community.vectorstores import FAISS
 
 from langchain.chains import create_retrieval_chain
+
 from langchain.chains.combine_documents import create_stuff_documents_chain
 
 
@@ -40,3 +41,48 @@ if uploaded_file:
     chunks = load_document(temp_file)
 
     st.write("Processing document... :watch:")
+
+    # Generate embeddings
+
+    embeddings = OpenAIEmbeddings(openai_api_key = OPENAI_KEY, model = 'text-embedding-ada-002')
+
+    vector_db = FAISS.from_documents(chunks, embeddings) 
+
+    # Create a document retriever
+    retriever = vector_db.as_retriever()
+    llm = ChatOpenAI(model_name = 'gpt-4o-mini', openai_api_key = OPENAI_KEY)
+
+    # Create a system prompt
+    system_prompt = (
+        "You are a helpful assistant. Use the given context to answer the question."
+        "If you don't know the answer, say you don't know. "
+        "{context}"
+    )
+
+    # Create a prompt Template
+    prompt = ChatPromptTemplate.from_messages(
+        [
+            ("system", system_prompt),
+            ("human", "{input}"),
+        ]
+    )
+
+    # Create a chain
+    # It creates a StuffDocumentChain, which takes multiple documents (text data) and "stuffs" them together before passing them to the LLM for processing
+
+    question_answer_chain = create_stuff_documents_chain(llm, prompt)
+
+    # Create the RAG
+    chain = create_retrieval_chain(retriever, question_answer_chain)
+
+    #Streamlit input for question
+    question = st.text_input("Ask a question about the document: ")
+    if question:
+        response = chain.invoke({"input": question})['answer']
+        st.write(response)
+
+
+
+# Delete the temp file
+os.remove('./temp.pdf')
+    

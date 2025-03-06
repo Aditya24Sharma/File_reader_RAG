@@ -15,7 +15,7 @@ def load_document(pdf):
 
     # instantiate text splitter with chunck size of 500 words and overlap of 100 words so that the context is # not lost
 
-    text_splitter = RecursiveCharacterTextSplitter(chunk_size=500, overlap=100)
+    text_splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=100)
     # split the chuncks for efficient retrieval
     chunks = text_splitter.split_documents(docs)
 
