@@ -1,13 +1,20 @@
 from fastapi import FastAPI, UploadFile, File
 from pydantic import BaseModel
 import os
-from app.services import extract_pdf_content
 import uvicorn
+
+
+from app.services import extract_pdf_content, store_chunks, retrieve_similar_chunks
+
 
 app = FastAPI()
 
 class ProcessRequest(BaseModel):
     file_path: str
+
+class QueryRequest(BaseModel):
+    query: str
+
 
 UPLOAD_FOLDER = "uploads"
 os.makedirs(UPLOAD_FOLDER, exist_ok = True)
@@ -23,6 +30,27 @@ async def upload_pdf(file: UploadFile = File(...)):
 async def process_pdf(request: ProcessRequest):
     chunks = extract_pdf_content(request.file_path)
     return {"message": "PDF processed successfully", "chunks": chunks}
+
+@app.post("/store/")
+async def store_pdf_chunks(request: ProcessRequest):
+    if not request.file_path:
+        return {"error": "File path not found"}
+    try:
+        chunks = extract_pdf_content(request.file_path)
+        if store_chunks(chunks):
+            return {"message": "PDF chunks stored successfully"}
+        else:
+            return {"error": "Failed to store chunks"}
+    except Exception as e:
+        return {"error": str(e)}
+
+@app.post("/query/")
+async def query_pdf(request: QueryRequest):
+    try:
+        chunks = retrieve_similar_chunks(request.query)
+        return {"message": "PDF chunks retrieved successfully", "chunks": chunks}
+    except Exception as e:
+        return {"error": str(e)}
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
