@@ -2,8 +2,6 @@ from fastapi import FastAPI, UploadFile, File
 from pydantic import BaseModel
 import os
 import uvicorn
-import openai
-
 
 from app.services import extract_pdf_content, store_chunks, retrieve_similar_chunks, generate_response
 
