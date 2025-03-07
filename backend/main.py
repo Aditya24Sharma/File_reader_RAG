@@ -2,9 +2,10 @@ from fastapi import FastAPI, UploadFile, File
 from pydantic import BaseModel
 import os
 import uvicorn
+import openai
 
 
-from app.services import extract_pdf_content, store_chunks, retrieve_similar_chunks
+from app.services import extract_pdf_content, store_chunks, retrieve_similar_chunks, generate_response
 
 
 app = FastAPI()
@@ -48,9 +49,15 @@ async def store_pdf_chunks(request: ProcessRequest):
 async def query_pdf(request: QueryRequest):
     try:
         chunks = retrieve_similar_chunks(request.query)
-        return {"message": "PDF chunks retrieved successfully", "chunks": chunks}
+
+        #create context for LLM
+        context = "\n".join(chunks)
+
+        answer = generate_response(context, request.query)
+        return {"answer": answer}
     except Exception as e:
         return {"error": str(e)}
+    
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
