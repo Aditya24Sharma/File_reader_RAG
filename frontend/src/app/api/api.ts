@@ -16,3 +16,13 @@ export async function fetchApi(endpoint: string, options: RequestInit = {}) {
     }
     return response.json();
 }
+
+export async function uploadFile(file: File) {
+    const formData = new FormData();
+    formData.append("file", file);
+    const response = await fetch(`${API_URL}/upload`, {
+        method: "POST",
+        body: formData,
+    });
+    return response;
+}

@@ -30,6 +30,7 @@ os.makedirs(UPLOAD_FOLDER, exist_ok = True)
 
 @app.post("/upload/")
 async def upload_pdf(file: UploadFile = File(...)):
+    print(f"Uploading file: {file.filename}")
     file_path = os.path.join(UPLOAD_FOLDER, file.filename)
     with open(file_path, "wb") as f:
         f.write(await file.read())
