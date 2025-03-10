@@ -5,12 +5,16 @@ import { fetchApi } from "../api/api";
 export default function Chatbox() {
     const [userMessage, setUserMessage] = useState("");
     const [botMessage, setBotMessage] = useState("");
+    const [userInputValue, setUserInputValue] = useState("");
+
+
     const handleSubmit = async (e) => {
+        setUserInputValue("");
         e.preventDefault();
-        setUserMessage(e.target.message.value);
+        setUserMessage(userInputValue);
         const response = await fetchApi("query", {
             method: "POST",
-            body: JSON.stringify({"query": userMessage}),
+            body: JSON.stringify({"query": e.target.message.value}),
         });
         const data = await response.answer;
         console.log(data);
@@ -36,6 +40,8 @@ export default function Chatbox() {
                     type="text" 
                     className="w-full h-full p-3" 
                     placeholder="Ask me about the paper"
+                    onChange={(e) => setUserInputValue(e.target.value)}
+                    value={userInputValue}
                 />
             </form>
         </div>
