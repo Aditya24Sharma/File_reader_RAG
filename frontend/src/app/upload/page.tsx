@@ -1,6 +1,6 @@
 "use client"
 
-import UploadIcon from "../components/icons/uploadIcon";
+import UploadIcon from "@/app/components/icons/uploadIcon";
 import React, {useRef} from "react";
 
 export default function Upload() {

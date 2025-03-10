@@ -2,11 +2,21 @@ from fastapi import FastAPI, UploadFile, File
 from pydantic import BaseModel
 import os
 import uvicorn
+from fastapi.middleware.cors import CORSMiddleware
 
 from app.services import extract_pdf_content, store_chunks, retrieve_similar_chunks, generate_response
 
 
+
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins = ["http://localhost:3000"],
+    allow_credentials = True,
+    allow_methods = ["*"],
+    allow_headers = ["*"],
+)
 
 class ProcessRequest(BaseModel):
     file_path: str
@@ -50,8 +60,9 @@ async def query_pdf(request: QueryRequest):
 
         #create context for LLM
         context = "\n".join(chunks)
-
+        print(f'Questions asked: {request.query}')
         answer = generate_response(context, request.query)
+        print(f'Answer: {answer}')
         return {"answer": answer}
     except Exception as e:
         return {"error": str(e)}

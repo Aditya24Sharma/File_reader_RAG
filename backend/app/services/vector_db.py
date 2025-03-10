@@ -2,8 +2,7 @@ import os
 import dotenv
 import chromadb
 from langchain_openai import OpenAIEmbeddings
-from langchain.vectorstores import Chroma
-
+from langchain_community.vectorstores import Chroma
 dotenv.load_dotenv()
 
 OPENAI_KEY = os.getenv("OPENAI_API_KEY")

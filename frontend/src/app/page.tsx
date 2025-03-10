@@ -7,7 +7,9 @@ export default function Home() {
         <h3 className = "text-xl bg-gray-200 px-4 py-2 rounded-3xl text-center text-gray-800 hover:bg-red-900 hover:text-white cursor-pointer" >
           <a href="/upload">Upload</a>
         </h3>
-        <h3 className = "text-xl bg-gray-200 px-4 py-2 rounded-3xl text-center text-gray-800 hover:bg-red-900 hover:text-white cursor-pointer">Demo</h3>
+        <h3 className = "text-xl bg-gray-200 px-4 py-2 rounded-3xl text-center text-gray-800 hover:bg-red-900 hover:text-white cursor-pointer">
+          <a href="/demo">Demo</a>
+        </h3>
       </div>
     </div>
   );
