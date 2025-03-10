@@ -24,5 +24,5 @@ export async function uploadFile(file: File) {
         method: "POST",
         body: formData,
     });
-    return response;
+    return response.json();
 }

@@ -5,12 +5,13 @@ import React, {useState, useRef} from "react";
 import { PaperAirplaneIcon, TrashIcon } from "@heroicons/react/24/outline";
 import { fetchApi, uploadFile } from "../api/api";
 import NotificationBanner from '@/components/NotificationBanner';
-
+import { useRouter } from "next/navigation";
 export default function Upload() {
+    const router = useRouter();
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [file, setFile] = useState<File | null>(null);
     const [notification, setNotification] = useState({
-        show: true,
+        show: false,
         message: '',
         type: 'success' as 'success' | 'error'
     });
@@ -32,10 +33,13 @@ export default function Upload() {
                     type: 'success'
                 });
             }
+            const file_name = file.name;
+            console.log('file name:',file_name);
             setFile(null);
             if (fileInputRef.current) {
                 fileInputRef.current.value = "";
             }
+            router.push(`/demo?file_name=${response.file_url}`);
         } catch (error) {
             console.error("Error uploading file:", error);
             setNotification({

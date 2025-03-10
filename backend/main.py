@@ -3,6 +3,7 @@ from pydantic import BaseModel
 import os
 import uvicorn
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 from app.services import extract_pdf_content, store_chunks, retrieve_similar_chunks, generate_response
 
@@ -26,15 +27,19 @@ class QueryRequest(BaseModel):
 
 
 UPLOAD_FOLDER = "uploads"
+
 os.makedirs(UPLOAD_FOLDER, exist_ok = True)
+
+app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
 @app.post("/upload/")
 async def upload_pdf(file: UploadFile = File(...)):
     print(f"Uploading file: {file.filename}")
     file_path = os.path.join(UPLOAD_FOLDER, file.filename)
+
     with open(file_path, "wb") as f:
         f.write(await file.read())
-    return {"message": "File uploaded successfully"}
+    return {"message": "File uploaded successfully", "status": "success", "file_url":f"http://localhost:8000/uploads/{file.filename}"}
 
 @app.post("/process/")
 async def process_pdf(request: ProcessRequest):
