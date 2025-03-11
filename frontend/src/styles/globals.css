@@ -1,4 +1,7 @@
 @import "tailwindcss";
+@tailwind utilities;
+@tailwind base;
+@tailwind components;
 
 :root {
   --background: #ffffff;
@@ -24,3 +27,17 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+@layer utilities {
+  /* Hide scrollbar for chrome, safari and opera */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Hide scrollbar for firefox */
+  .no-scrollbar {
+    scrollbar-width: none;
+  }
+}
+
+
