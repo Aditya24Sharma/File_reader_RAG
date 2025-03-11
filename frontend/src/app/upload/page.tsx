@@ -6,6 +6,7 @@ import { PaperAirplaneIcon, TrashIcon } from "@heroicons/react/24/outline";
 import { fetchApi, uploadFile } from "../api/api";
 import NotificationBanner from '@/components/NotificationBanner';
 import { useRouter } from "next/navigation";
+
 export default function Upload() {
     const router = useRouter();
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -25,21 +26,36 @@ export default function Upload() {
         formData.append("file", file);
         
         try {
-            const response = await uploadFile(file);
-            if (response.status === 200) {
+            const upload_response = await uploadFile(file);
+            if (upload_response.status === 200) {
                 setNotification({
                     show: true,
                     message: 'File uploaded successfully!',
                     type: 'success'
                 });
             }
-            const file_name = file.name;
-            console.log('file name:',file_name);
+
             setFile(null);
             if (fileInputRef.current) {
                 fileInputRef.current.value = "";
             }
-            router.push(`/demo?file_name=${response.file_url}`);
+            
+            const store_response = await fetchApi(`/store`,{
+                method: 'POST',
+                body: JSON.stringify({file_path: upload_response.file_path})
+            });
+
+            console.log(store_response);
+
+            if (store_response.status === 'success') {
+                router.push(`/demo?file_name=${upload_response.file_url}`);
+            } else {
+                setNotification({
+                    show: true,
+                    message: 'Failed to process file',
+                    type: 'error'
+                });
+            }
         } catch (error) {
             console.error("Error uploading file:", error);
             setNotification({
