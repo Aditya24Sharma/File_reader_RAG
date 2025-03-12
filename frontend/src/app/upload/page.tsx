@@ -40,14 +40,14 @@ export default function Upload() {
                 fileInputRef.current.value = "";
             }
             
-            const store_response = await fetchApi(`/store`,{
+            const process_response = await fetchApi(`/process`,{
                 method: 'POST',
                 body: JSON.stringify({file_path: upload_response.file_path})
             });
 
-            console.log(store_response);
+            console.log(process_response);
 
-            if (store_response.status === 'success') {
+            if (process_response.status === 'success') {
                 router.push(`/demo?file_name=${upload_response.file_url}`);
             } else {
                 setNotification({

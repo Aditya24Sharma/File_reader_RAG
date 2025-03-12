@@ -5,7 +5,7 @@ import uvicorn
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
-from app.services import extract_pdf_content, store_chunks, retrieve_similar_chunks, generate_response
+from app.services import process_pdf, retrieve_similar_chunks, generate_response
 
 
 
@@ -30,6 +30,8 @@ UPLOAD_FOLDER = "uploads"
 
 os.makedirs(UPLOAD_FOLDER, exist_ok = True)
 
+current_file_path = "uploads/Test.pdf"
+
 app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
 @app.post("/upload/")
@@ -39,6 +41,8 @@ async def upload_pdf(file: UploadFile = File(...)):
 
     with open(file_path, "wb") as f:
         f.write(await file.read())
+    global current_file_path
+    current_file_path = file_path
     return {
         "message": "File uploaded successfully",
         "status": "success",
@@ -46,30 +50,27 @@ async def upload_pdf(file: UploadFile = File(...)):
         "file_path":file_path
     }
 
-@app.post("/store/")
-async def store_pdf_chunks(request: ProcessRequest):
+@app.post("/process/")
+async def process(request: ProcessRequest):
     if not request.file_path:
         return {"error": "File path not found", "status": "error"}
     try:
-        print(f"Extracting pdf content from: {request.file_path}")
-        chunks = extract_pdf_content(request.file_path)
-        print(f"Extracted {len(chunks)} chunks")
-        if store_chunks(chunks):
-            print(f"PDF chunks stored successfully for file: {request.file_path}")
+        if process_pdf(request.file_path):
             return {
-                "message": "PDF chunks stored successfully",
+                "message": "PDF processed successfully",
                 "status": "success",
                 "file_path":request.file_path
             }
         else:
-            return {"error": "Failed to store chunks", "status": "error"}
+            return {"error": "Failed to process PDF", "status": "error"}
     except Exception as e:
         return {"error": str(e), "status": "error"}
 
 @app.post("/query/")
 async def query_pdf(request: QueryRequest):
     try:
-        chunks = retrieve_similar_chunks(request.query)
+        global current_file_path
+        chunks = retrieve_similar_chunks(request.query, current_file_path)
         #create context for LLM
         context = "\n".join(chunks)
         print(f'Questions asked: {request.query}')

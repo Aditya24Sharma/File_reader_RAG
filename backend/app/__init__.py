@@ -1,1 +1,1 @@
-from .services import extract_pdf_content, store_chunks, retrieve_similar_chunks, generate_response
+from .services import process_pdf, retrieve_similar_chunks, generate_response
