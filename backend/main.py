@@ -4,7 +4,9 @@ import os
 import uvicorn
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-
+from fastapi.responses import StreamingResponse
+import json
+import asyncio
 from app.services import process_pdf, retrieve_similar_chunks, generate_response
 
 
@@ -70,9 +72,17 @@ async def query_pdf(request: QueryRequest):
         #create context for LLM
         context = "\n".join(chunks)
         print(f'Questions asked: {request.query}')
-        answer = generate_response(context, request.query)
-        print(f'Answer: {answer}')
-        return {"answer": answer}
+        async def generate_answer():
+            answer = generate_response(context, request.query)
+
+            words = answer.split(" ")
+            for word in words:
+                yield f"data: {json.dumps({'content':word + ' '})}\n\n"
+                await asyncio.sleep(0.03)
+
+            yield f"data: [DONE]\n\n"
+        return StreamingResponse(generate_answer(), media_type="text/event-stream")
+    
     except Exception as e:
         return {"error": str(e)}
     

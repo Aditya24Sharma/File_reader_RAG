@@ -1,12 +1,13 @@
 'use client'
 import { useState, useEffect, useRef } from "react";
-import { fetchApi } from "../api/api";
+import { fetchStreamingApi } from "../api/api";
 
 
 
 export default function Chatbox({file_path}) {
     const [userInputValue, setUserInputValue] = useState("");
     const [messages, setMessages] = useState([]);
+    const [isStreaming, setIsStreaming] = useState(false);
     const chatRef = useRef(null);
 
     useEffect(() => {
@@ -16,15 +17,53 @@ export default function Chatbox({file_path}) {
     }, [messages]);
 
     const handleSubmit = async (e) => {
-        setUserInputValue("");
         e.preventDefault();
+        setUserInputValue("");
+
         setMessages(prevMessages => [...prevMessages, {role: 'user', content: userInputValue}]);
-        const response = await fetchApi("query", {
+        setMessages(prevMessages => [...prevMessages, {role: 'assistant', content: ''}]);
+        setIsStreaming(true);
+
+        const response = await fetchStreamingApi("query", {
             method: "POST",
             body: JSON.stringify({"query": e.target.message.value, "file_path": file_path}),
         });
-        const data = await response.answer;
-        setMessages(prevMessages => [...prevMessages, {role: 'assistant', content: data}]);
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let assistantMessage = '';
+
+        while (true) {
+            const { value, done } = await reader.read();
+            if (done) break;
+            
+            const chunk = decoder.decode(value);
+            const lines = chunk.split('\n');
+
+            for (const line of lines) {
+                if (line.startsWith('data: ')) {
+                    const data = line.slice(6);
+                    if (data === '[DONE]') {
+                        setIsStreaming(false);
+                        break;
+                    }
+                    
+                    try {
+                        const parsed = JSON.parse(data);
+                        assistantMessage += parsed.content;
+                        
+                        setMessages(prev => {
+                            const newMessages = [...prev];
+                            newMessages[newMessages.length - 1].content = assistantMessage;
+                            return newMessages;
+                        });
+                    } catch (e) {
+                        console.error('Error parsing JSON:', e);
+                    }
+                }
+            }
+        }
+       
     }
 
 
@@ -34,6 +73,9 @@ export default function Chatbox({file_path}) {
                 {messages.map((message, index) => (
                     <div key={index} className={`max-w-[80%] ${message.role === 'user' ? 'bg-gray-200 rounded-sm p-1 px-2 ml-auto mt-0 text-black' : 'bg-blue-500 rounded-sm p-1 px-2 mr-auto mt-0 text-white'}`}>
                         {message.content}
+                        {isStreaming && index === messages.length - 1 && (
+                            <span className="inline-block w-1 h-4 ml-1 bg-white animate-pulse"/>
+                        )}
                     </div>
                 ))}
             </div>
@@ -42,9 +84,10 @@ export default function Chatbox({file_path}) {
                     name="message"
                     type="text" 
                     className="w-full h-full p-3" 
-                    placeholder="Ask me about the paper"
+                    placeholder={isStreaming ? "Thinking..." : "Ask me about the paper"}
                     onChange={(e) => setUserInputValue(e.target.value)}
                     value={userInputValue}
+                    disabled={isStreaming}
                 />
             </form>
         </div>
