@@ -3,11 +3,25 @@
 import PdfViewer from "@/app/components/pdf_viewer";
 import Chatbox from "@/app/components/chatbox";
 import BackIcon from "@/app/components/icons/backIcon";
-import { useSearchParams } from "next/navigation";
+import { fetchApi } from "../api/api";
+import { useEffect } from "react";
+
 export default function DemoPage() {
-    const searchParams = useSearchParams();
-    const file_name = searchParams.get('file_name');
-    const fileUrl = file_name ? file_name : 'http://localhost:8000/uploads/Test.pdf';
+    const fileUrl = 'http://localhost:8000/uploads/Test.pdf';
+    const file_path = 'uploads/Test.pdf';
+
+    useEffect(() => {
+
+        async function process_file() {
+        const process_response = await fetchApi(`/process`,{
+                method: 'POST',
+                body: JSON.stringify({file_path: file_path})
+            });
+        }
+        process_file();
+    }, [file_path]);
+
+
     return (
         <div className="p-10">
             <div className="flex flex-row">
@@ -24,7 +38,7 @@ export default function DemoPage() {
                     <PdfViewer FileUrl={fileUrl}/>
                 </div>
                 <div className="w-[30%]">
-                    <Chatbox />
+                    <Chatbox file_path={file_path}/>
                 </div>
             </div>
         </div>

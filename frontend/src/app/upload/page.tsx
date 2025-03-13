@@ -48,7 +48,7 @@ export default function Upload() {
             console.log(process_response);
 
             if (process_response.status === 'success') {
-                router.push(`/demo?file_name=${upload_response.file_url}`);
+                router.push(`/rag?file_path=${upload_response.file_path}`);
             } else {
                 setNotification({
                     show: true,

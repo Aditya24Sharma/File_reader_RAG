@@ -4,7 +4,7 @@ import { fetchApi } from "../api/api";
 
 
 
-export default function Chatbox() {
+export default function Chatbox({file_path}) {
     const [userInputValue, setUserInputValue] = useState("");
     const [messages, setMessages] = useState([]);
     const chatRef = useRef(null);
@@ -21,7 +21,7 @@ export default function Chatbox() {
         setMessages(prevMessages => [...prevMessages, {role: 'user', content: userInputValue}]);
         const response = await fetchApi("query", {
             method: "POST",
-            body: JSON.stringify({"query": e.target.message.value}),
+            body: JSON.stringify({"query": e.target.message.value, "file_path": file_path}),
         });
         const data = await response.answer;
         setMessages(prevMessages => [...prevMessages, {role: 'assistant', content: data}]);

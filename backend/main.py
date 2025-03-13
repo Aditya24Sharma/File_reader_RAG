@@ -24,13 +24,11 @@ class ProcessRequest(BaseModel):
 
 class QueryRequest(BaseModel):
     query: str
-
+    file_path: str
 
 UPLOAD_FOLDER = "uploads"
 
 os.makedirs(UPLOAD_FOLDER, exist_ok = True)
-
-current_file_path = "uploads/Test.pdf"
 
 app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
@@ -41,8 +39,6 @@ async def upload_pdf(file: UploadFile = File(...)):
 
     with open(file_path, "wb") as f:
         f.write(await file.read())
-    global current_file_path
-    current_file_path = file_path
     return {
         "message": "File uploaded successfully",
         "status": "success",
@@ -69,8 +65,8 @@ async def process(request: ProcessRequest):
 @app.post("/query/")
 async def query_pdf(request: QueryRequest):
     try:
-        global current_file_path
-        chunks = retrieve_similar_chunks(request.query, current_file_path)
+        print(f'Entered query function')
+        chunks = retrieve_similar_chunks(request.query, request.file_path)
         #create context for LLM
         context = "\n".join(chunks)
         print(f'Questions asked: {request.query}')
